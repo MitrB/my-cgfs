@@ -19,7 +19,7 @@ class Canvas {
 
         std::vector<int> getResolution() {return RESOLUTION;}
     private:
-        const std::vector<int> RESOLUTION {600, 600}; // WIDHT HEIGHT
+        const std::vector<int> RESOLUTION {500, 500}; // WIDHT HEIGHT
 };
 
 class ViewPort {
@@ -57,17 +57,23 @@ class Camera {
 
 class Sphere {
     public:
-        Sphere(){};
+        Sphere(std::vector<float> position, float radius, std::vector<float> color);
         ~Sphere(){};
 
         std::vector<float>  getPosition()   {return this->position;}
         float   getRadius()     {return this->radius;}
         std::vector<float>    getColor()      {return this->color;}
     private:
-        std::vector<float> position {0.f, 0.f, 10.f};
-        float radius {0.01f};
-        std::vector<float> color {1.f, 0.f ,0.f};
+        std::vector<float> position;
+        float radius;
+        std::vector<float> color;
 };
+
+Sphere::Sphere(std::vector<float> position, float radius, std::vector<float> color) {
+    this->position = position;
+    this->radius = radius;
+    this->color = color;   
+}
 
 }
 
@@ -102,7 +108,7 @@ std::vector<float> scaleVector(float scalar, std::vector<float> vec) {
 float distanceBetweenVectors(std::vector<float> vec1, std::vector<float> vec2) {
     float distance = 0;
     for (int i = 0; i < vec1.size(); i++) {
-        distance += vec1[i]*vec1[i] - vec2[i]*vec2[i];
+        distance += (vec1[i] - vec2[i])*(vec1[i] - vec2[i]); // you can play with to have cool effects
     }
     
     return std::sqrt(distance);
@@ -160,8 +166,9 @@ int main() {
     std::cout << "Pixel Width: " <<  pixelWidth  << '\n';
     std::cout << "Pixel Height: " <<  pixelHeight << '\n';
 
-    rayTracer::Sphere sphere{};
-    std::vector<rayTracer::Sphere> spheres {sphere};
+    rayTracer::Sphere sphere({1.f, 1.f, 1.f}, 1.f, {.9f, .5f, .2f});
+    rayTracer::Sphere sphere2({-1.f, -1.f, 10.f}, 1.f, {.2f, .9f, .2f});
+    std::vector<rayTracer::Sphere> spheres {sphere, sphere2};
 
 
     int width = resolution[0];
@@ -171,7 +178,6 @@ int main() {
     for (size_t j = 0; j<height; j++) {
         for (size_t i = 0; i<width; i++) {
             std::vector<float> color = {0.f, 0.f, 0.f};
-            //std::cout << pixelWidth*width - viewPortWidth/2;
             std::vector<rayTracer::Sphere> intersected = utils::intersectedSpheres(std::vector<float> {pixelWidth*i - viewPortWidth/2, pixelHeight*j - viewPortHeight/2, viewPort.getZ()}, spheres);
             if (intersected.size() > 0) {
                 color = intersected[0].getColor();
