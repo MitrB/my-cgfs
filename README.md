@@ -6,4 +6,4 @@ And also taking inspiration from this repository: [tinytracer](https://github.co
 
 Results:
 
-![alt text](https://github.com/mitrb/my-cgfs/blob/main/results/first.ppm?raw=true)
+![first (working)result](https://github.com/mitrb/my-cgfs/blob/main/results/first.png?raw=true)
