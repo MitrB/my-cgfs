@@ -7,3 +7,4 @@ And also taking inspiration from this repository: [tinytracer](https://github.co
 Results:
 
 ![first (working)result](https://github.com/mitrb/my-cgfs/blob/main/results/first.png?raw=true)
+![point light](https://github.com/mitrb/my-cgfs/blob/main/results/pointLight.png?raw=true)
