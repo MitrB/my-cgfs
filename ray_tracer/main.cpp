@@ -19,7 +19,7 @@ class Canvas { public: Canvas(){};
 
         std::vector<int> getResolution() {return RESOLUTION;}
     private:
-        const std::vector<int> RESOLUTION {500, 500}; // WIDHT HEIGHT
+        const std::vector<int> RESOLUTION {1080, 1080}; // WIDHT HEIGHT
 };
 
 class ViewPort {
@@ -135,12 +135,12 @@ int main() {
     std::cout << "Pixel Width: " <<  pixelWidth  << '\n';
     std::cout << "Pixel Height: " <<  pixelHeight << '\n';
 
-    rayTracer::Sphere sphere({5.f, 1.f, 10.f}, 1.f, {.9f, .5f, .2f});
-    rayTracer::Sphere sphere2({0.f, 0.f, 2.f}, .5f, {.2f, .9f, .2f});
+    rayTracer::Sphere sphere({0.f, 0.f, 5.f}, 1.f, {.9f, .5f, .2f});
+    rayTracer::Sphere sphere2({3.f, 1.f, 10.f}, .5f, {.2f, .9f, .2f});
     std::vector<rayTracer::Sphere> spheres {sphere, sphere2};
 
     rayTracer::Light light{};
-    light.position = {0.f, 2.f, 3.f};
+    light.position = {0.f, -2.f, 0.f};
     light.intensity = .8f;
     std::vector<rayTracer::Light> lights{light};
 
@@ -160,7 +160,7 @@ int main() {
                 float diffuseLight = 0;
                 for (rayTracer::Light light : lights) {
                     glm::vec3 lightDir = glm::normalize(light.position - intersectedPoints[0]); 
-                    glm::vec3 normalVector = glm::normalize(intersected[0].getPosition() - intersectedPoints[0]);
+                    glm::vec3 normalVector = glm::normalize(intersectedPoints[0] - intersected[0].getPosition());
                     diffuseLight += light.intensity * std::max(0.f, glm::dot(normalVector, lightDir));
                 }
                 color = diffuseLight * color; 
