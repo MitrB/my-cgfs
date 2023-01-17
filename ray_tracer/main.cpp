@@ -3,6 +3,8 @@
 #include <vector>
 #include <cmath>
 
+#include <glm/glm.hpp>
+
 /* Coordinate system:
  * The middle of the screen should be (0, 0)
  * X grows positivly to the right
@@ -12,9 +14,7 @@
 
 namespace rayTracer {
 
-class Canvas {
-    public:
-        Canvas(){};
+class Canvas { public: Canvas(){};
         ~Canvas(){};
 
         std::vector<int> getResolution() {return RESOLUTION;}
@@ -30,16 +30,16 @@ class ViewPort {
         ~ViewPort(){};
 
         float getZ() {return this->LEFT_DOWN_POS[2];}
-        std::vector<float> getLDP() {return LEFT_DOWN_POS;}
-        std::vector<float> getRUP() {return RIGHT_UP_POS;}
+        glm::vec3 getLDP() {return LEFT_DOWN_POS;}
+        glm::vec3 getRUP() {return RIGHT_UP_POS;}
 
     private:
         /* +--------RUP
          * |         |
          * LDP-------+
          */
-        std::vector<float> LEFT_DOWN_POS {-.5f, .5f, 1.f}; // remember the Y axis grows downwards
-        std::vector<float> RIGHT_UP_POS {.5f, -.5f, 1.f};
+        glm::vec3 LEFT_DOWN_POS {-.5f, .5f, 1.f}; // remember the Y axis grows downwards
+        glm::vec3 RIGHT_UP_POS {.5f, -.5f, 1.f};
 };
 
 
@@ -50,87 +50,56 @@ class Camera {
         Camera(){};
         ~Camera(){};
 
-        std::vector<float> getPosition() {return this->position;}
+        glm::vec3 getPosition() {return this->position;}
     private:
-        std::vector<float> position {0.f, 0.f, 0.f};
+        glm::vec3 position {0.f, 0.f, 0.f};
 };
 
 class Sphere {
     public:
-        Sphere(std::vector<float> position, float radius, std::vector<float> color);
+        Sphere(glm::vec3 position, float radius, glm::vec3 color);
         ~Sphere(){};
 
-        std::vector<float>  getPosition()   {return this->position;}
-        float   getRadius()     {return this->radius;}
-        std::vector<float>    getColor()      {return this->color;}
+        glm::vec3   getPosition()   {return this->position;}
+        float       getRadius()     {return this->radius;}
+        glm::vec3   getColor()      {return this->color;}
     private:
-        std::vector<float> position;
+        glm::vec3 position;
         float radius;
-        std::vector<float> color;
+        glm::vec3 color;
 };
 
-Sphere::Sphere(std::vector<float> position, float radius, std::vector<float> color) {
+Sphere::Sphere(glm::vec3 position, float radius, glm::vec3 color) {
     this->position = position;
     this->radius = radius;
     this->color = color;   
 }
 
+struct Light {
+    glm::vec3 position;
+    float intensity;
+};
+
 }
 
-namespace utils {
 
-float dot(std::vector<float> vec1, std::vector<float> vec2) {
-    float product = 0;
-    for (int i = 0; i < vec1.size(); i++) {
-       product += vec1[i]* vec2[i];
-    } 
-
-    return product;
-}
-
-float len(std::vector<float> vec) {
-    float length = 0;
-    for (float point : vec) {
-        length += point*point;
-    }
-
-    return std::sqrt(length);
-}
-
-std::vector<float> scaleVector(float scalar, std::vector<float> vec) {
-    for (int i = 0; i < vec.size(); i++) {
-        vec[i] = vec[i]*scalar;
-    }
-
-    return vec;
-}
-
-float distanceBetweenVectors(std::vector<float> vec1, std::vector<float> vec2) {
-    float distance = 0;
-    for (int i = 0; i < vec1.size(); i++) {
-        distance += (vec1[i] - vec2[i])*(vec1[i] - vec2[i]); // you can play with to have cool effects
-    }
-    
-    return std::sqrt(distance);
-}
-
-// only works if the point's axis origin is the same origin as the vector has
-float distancePointVector(std::vector<float> point, std::vector<float> vec) {
-    std::vector<float> projectedVector = scaleVector((dot(vec, point)/len(vec)), vec);
-    return distanceBetweenVectors(projectedVector, point);
-}
-
-std::vector<rayTracer::Sphere> intersectedSpheres(std::vector<float> vec, std::vector<rayTracer::Sphere> spheres) {
+/**
+ * Returns all the spheres that lie in the line formed by the vector vec
+ */
+std::vector<rayTracer::Sphere> intersectedSpheres(glm::vec3 direction, std::vector<rayTracer::Sphere> spheres, std::vector<glm::vec3>& intersectedPoints ) {
     std::vector<rayTracer::Sphere> intersectedSpheres{};
+
     for (rayTracer::Sphere sphere : spheres) {
-        if (distancePointVector(sphere.getPosition(), vec) <= sphere.getRadius()) {
+        glm::vec3 point = sphere.getPosition();
+        glm::vec3 projectedVector = glm::dot(direction, point)/glm::length(direction) * glm::normalize(direction);
+        if (glm::distance(point, projectedVector) <= sphere.getRadius()) {
             intersectedSpheres.push_back(sphere);
+            float length = glm::length(projectedVector) - sqrt(pow(sphere.getRadius(), 2) - pow(glm::length(projectedVector - point), 2));
+            glm::vec3 intersectPoint = length * glm::normalize(direction);
+            intersectedPoints.push_back(intersectPoint);
         } 
     }
     return intersectedSpheres;
-}
-
-
 }
 
 void render(int width, int height, std::vector<std::vector<float>> &framebuffer) {
@@ -166,9 +135,14 @@ int main() {
     std::cout << "Pixel Width: " <<  pixelWidth  << '\n';
     std::cout << "Pixel Height: " <<  pixelHeight << '\n';
 
-    rayTracer::Sphere sphere({1.f, 1.f, 1.f}, 1.f, {.9f, .5f, .2f});
-    rayTracer::Sphere sphere2({-1.f, -1.f, 10.f}, 1.f, {.2f, .9f, .2f});
+    rayTracer::Sphere sphere({5.f, 1.f, 10.f}, 1.f, {.9f, .5f, .2f});
+    rayTracer::Sphere sphere2({0.f, 0.f, 2.f}, .5f, {.2f, .9f, .2f});
     std::vector<rayTracer::Sphere> spheres {sphere, sphere2};
+
+    rayTracer::Light light{};
+    light.position = {0.f, 2.f, 3.f};
+    light.intensity = .8f;
+    std::vector<rayTracer::Light> lights{light};
 
 
     int width = resolution[0];
@@ -177,13 +151,27 @@ int main() {
 
     for (size_t j = 0; j<height; j++) {
         for (size_t i = 0; i<width; i++) {
-            std::vector<float> color = {0.f, 0.f, 0.f};
-            std::vector<rayTracer::Sphere> intersected = utils::intersectedSpheres(std::vector<float> {pixelWidth*i - viewPortWidth/2, pixelHeight*j - viewPortHeight/2, viewPort.getZ()}, spheres);
+            glm::vec3 color = {1.f, 1.f, 1.f};
+            std::vector<glm::vec3> intersectedPoints{};
+            // should be the center
+            std::vector<rayTracer::Sphere> intersected = intersectedSpheres(glm::vec3 {pixelWidth*i - viewPortWidth/2, pixelHeight*j - viewPortHeight/2, viewPort.getZ()}, spheres, intersectedPoints);
             if (intersected.size() > 0) {
                 color = intersected[0].getColor();
+                float diffuseLight = 0;
+                for (rayTracer::Light light : lights) {
+                    glm::vec3 lightDir = glm::normalize(light.position - intersectedPoints[0]); 
+                    glm::vec3 normalVector = glm::normalize(intersected[0].getPosition() - intersectedPoints[0]);
+                    diffuseLight += light.intensity * std::max(0.f, glm::dot(normalVector, lightDir));
+                }
+                color = diffuseLight * color; 
             }
 
-            framebuffer.push_back(color);
+            std::vector<float> colorWritable{};
+            for (int i = 0; i < 3; i++) {
+                colorWritable.push_back(color[i]);
+            }
+
+            framebuffer.push_back(colorWritable);
         }
     }
 
