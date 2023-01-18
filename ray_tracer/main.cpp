@@ -23,7 +23,7 @@ class Canvas { public: Canvas(){};
 };
 
 class ViewPort {
-    // Assume the viewport lies in the YZ plane
+    // The viewport is relative to the camera
     // Assume the center of the viewport is the position of the viewport
     public:
         ViewPort(){};
@@ -52,7 +52,7 @@ class Camera {
 
         glm::vec3 getPosition() {return this->position;}
     private:
-        glm::vec3 position {0.f, 0.f, 0.f};
+        glm::vec3 position {0.0f, 0.0f, 0.0f};
 };
 
 class Sphere {
@@ -90,13 +90,18 @@ struct PointLight {
  * Returns all the spheres that lie in the line formed by the vector vec
  * @param closest should be initialized as 0
  */
-std::vector<rayTracer::Sphere> intersectedSpheres(glm::vec3 direction, std::vector<rayTracer::Sphere> spheres, std::vector<glm::vec3>& intersectedPoints, int &closest) {
+std::vector<rayTracer::Sphere> intersectedSpheres(glm::vec3 origin, glm::vec3 direction, std::vector<rayTracer::Sphere> spheres, std::vector<glm::vec3>& intersectedPoints, int &closest) {
     std::vector<rayTracer::Sphere> intersectedSpheres{};
+    // Calculate everything with the origin as 0 0 0 
 
     float closestLength = std::numeric_limits<float>::infinity();
     int iterIndex = 0;
     for (rayTracer::Sphere sphere : spheres) {
-        glm::vec3 point = sphere.getPosition();
+        glm::vec3 point = sphere.getPosition() - origin;
+        // check if the sphere is behind the direction: discard
+        if (glm::dot(direction, point) <= 0) {
+            continue;
+        }
         glm::vec3 projectedVector = glm::dot(direction, point)/glm::length(direction) * glm::normalize(direction);
         if (glm::distance(point, projectedVector) <= sphere.getRadius()) {
 
@@ -109,7 +114,7 @@ std::vector<rayTracer::Sphere> intersectedSpheres(glm::vec3 direction, std::vect
                 closest = iterIndex; // the closest point index is the index of the sphere that will now be added to the sphere interesctions
                 closestLength = length;
             }
-            glm::vec3 intersectPoint = length * glm::normalize(direction);
+            glm::vec3 intersectPoint = length * glm::normalize(direction) + origin; // Convert the intersectionpoint to a global position
             intersectedPoints.push_back(intersectPoint);
             iterIndex++;
         } 
@@ -151,10 +156,13 @@ int main() {
     std::cout << "Pixel Height: " <<  pixelHeight << '\n';
 
     // Scene
+    std::vector<rayTracer::Sphere> spheres{};
     rayTracer::Sphere sphere({0.0f, -0.5f, 5.0f}, 1.f, {.9f, .5f, .2f}, 1.0f);
     rayTracer::Sphere sphere2({-1.0f, 0.5f, 5.5f}, 1.f, {.2f, .9f, .2f}, 0.1f);
     rayTracer::Sphere sphere3({1.5f, 0.0f, 5.8f}, 1.2f, {.2f, .1f, .7f}, 0.5f);
-    std::vector<rayTracer::Sphere> spheres {sphere, sphere2, sphere3};
+    spheres.push_back(sphere);
+    spheres.push_back(sphere2);
+    spheres.push_back(sphere3);
 
     std::vector<rayTracer::PointLight> lights{};
     // Light
@@ -184,8 +192,8 @@ int main() {
             std::vector<glm::vec3> intersectedPoints{};
             int closest = 0;
 
-            glm::vec3 direction = glm::vec3 {pixelWidth*i - viewPortWidth/2 + pixelWidth/2, pixelHeight*j - viewPortHeight/2 + pixelHeight/2, viewPort.getZ()};
-            std::vector<rayTracer::Sphere> intersected = intersectedSpheres(direction, spheres, intersectedPoints, closest);
+            glm::vec3 direction = glm::vec3 {pixelWidth*i - viewPortWidth/2 + pixelWidth/2, pixelHeight*j - viewPortHeight/2 + pixelHeight/2, viewPort.getZ()}; // this is relative to the camera
+            std::vector<rayTracer::Sphere> intersected = intersectedSpheres(camera.getPosition(), direction, spheres, intersectedPoints, closest);
 
             if (intersected.size() > 0) {
 
@@ -197,6 +205,11 @@ int main() {
                 float specularLight = 0;
                 for (rayTracer::PointLight light : lights) {
                     // If blocked by another sphere: skip, this is shadow
+                    int _c = 0;
+                    // This could get buggy as it checks intersections with it's own spere, might be a possibilty of it not intersecting and then not casting appropriate shadows
+                    if (intersectedSpheres(intersectedPoints[closest], light.position - intersectedPoints[closest] , spheres, intersectedPoints, _c).size() > 0) {
+                       continue; 
+                    }
                     
                     glm::vec3 lightDir = glm::normalize(light.position - intersectedPoints[closest]); 
                     glm::vec3 normalVector = glm::normalize(intersectedPoints[closest] - intersected[closest].getPosition());
@@ -211,7 +224,7 @@ int main() {
                     specularLight *= light.intensity;
                     
                 }
-                color = ambientLight*glm::vec3{1.f} + diffuseLight * color + specularLight * color; // the last color component should probably be a {1, 1, 1} vector, but this gives nice results
+                color = ambientLight*color + diffuseLight * color + specularLight * color; // can play around with this
             }
 
             std::vector<float> colorWritable{};
