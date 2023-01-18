@@ -220,7 +220,7 @@ int main() {
                     // specular reflection
                     glm::vec3 lightBounceDir = 2 * glm::dot(lightDir, normalVector)* normalVector - lightDir;
                     float specularity = intersected[closest].getSpecularity();
-                    specularLight += light.intensity * specularity * std::max(0.f, glm::dot(-direction, lightBounceDir));
+                    specularLight += light.intensity * specularity * std::max(0.f, glm::dot(-(direction + camera.getPosition()), lightBounceDir));
                     
                 }
                 //color = ambientLight*color + diffuseLight * color + specularLight * color; // can play around with this
