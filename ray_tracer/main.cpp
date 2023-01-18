@@ -57,22 +57,25 @@ class Camera {
 
 class Sphere {
     public:
-        Sphere(glm::vec3 position, float radius, glm::vec3 color);
+        Sphere(glm::vec3 position, float radius, glm::vec3 color, float specularity);
         ~Sphere(){};
 
         glm::vec3   getPosition()   {return this->position;}
         float       getRadius()     {return this->radius;}
         glm::vec3   getColor()      {return this->color;}
+        float       getSpecularity(){return this->specularity;}
     private:
         glm::vec3 position;
         float radius;
         glm::vec3 color;
+        float specularity;
 };
 
-Sphere::Sphere(glm::vec3 position, float radius, glm::vec3 color) {
+Sphere::Sphere(glm::vec3 position, float radius, glm::vec3 color, float specularity) {
     this->position = position;
     this->radius = radius;
     this->color = color;   
+    this->specularity = specularity;   
 }
 
 struct PointLight {
@@ -100,7 +103,7 @@ std::vector<rayTracer::Sphere> intersectedSpheres(glm::vec3 direction, std::vect
             intersectedSpheres.push_back(sphere);
             
             // calculate point that is closest to camera and on the intersected sphere
-            float length = glm::length(projectedVector) - sqrt(pow(sphere.getRadius(), 2) - pow(glm::length(projectedVector - point), 2));
+            float length = glm::length(projectedVector) - sqrt(powf(sphere.getRadius(), 2) - powf(glm::length(projectedVector - point), 2));
             // Use this length to keep the index of the point that is the overall closest to the camera
             if (length <= closestLength) {
                 closest = iterIndex; // the closest point index is the index of the sphere that will now be added to the sphere interesctions
@@ -148,15 +151,21 @@ int main() {
     std::cout << "Pixel Height: " <<  pixelHeight << '\n';
 
     // Scene
-    rayTracer::Sphere sphere({0.f, -0.5f, 5.0f}, 1.f, {.9f, .5f, .2f});
-    rayTracer::Sphere sphere2({0.f, 0.5f, 5.5f}, 1.f, {.2f, .9f, .2f});
-    std::vector<rayTracer::Sphere> spheres {sphere, sphere2};
+    rayTracer::Sphere sphere({0.0f, -0.5f, 5.0f}, 1.f, {.9f, .5f, .2f}, 1.0f);
+    rayTracer::Sphere sphere2({-1.0f, 0.5f, 5.5f}, 1.f, {.2f, .9f, .2f}, 0.1f);
+    rayTracer::Sphere sphere3({1.5f, 0.0f, 5.8f}, 1.2f, {.2f, .1f, .7f}, 0.5f);
+    std::vector<rayTracer::Sphere> spheres {sphere, sphere2, sphere3};
 
+    std::vector<rayTracer::PointLight> lights{};
     // Light
     rayTracer::PointLight light{};
-    light.position = {0.f, -2.f, 0.f};
+    light.position = {0.f, -8.f, 0.f};
     light.intensity = 1.f;
-    std::vector<rayTracer::PointLight> lights{light};
+    lights.push_back(light);
+
+    //rayTracer::PointLight light2{};
+    //light2.position = {-1.f, 0.f, 0.f};
+    //light2.intensity = 1.0f;
 
     float ambientLight = .2f;
 
@@ -174,7 +183,8 @@ int main() {
             std::vector<glm::vec3> intersectedPoints{};
             int closest = 0;
 
-            std::vector<rayTracer::Sphere> intersected = intersectedSpheres(glm::vec3 {pixelWidth*i - viewPortWidth/2 + pixelWidth/2, pixelHeight*j - viewPortHeight/2 + pixelHeight/2, viewPort.getZ()}, spheres, intersectedPoints, closest);
+            glm::vec3 direction = glm::vec3 {pixelWidth*i - viewPortWidth/2 + pixelWidth/2, pixelHeight*j - viewPortHeight/2 + pixelHeight/2, viewPort.getZ()};
+            std::vector<rayTracer::Sphere> intersected = intersectedSpheres(direction, spheres, intersectedPoints, closest);
 
             if (intersected.size() > 0) {
 
@@ -183,12 +193,23 @@ int main() {
 
                 // calculate light 
                 float diffuseLight = 0;
+                float specularLight = 0;
                 for (rayTracer::PointLight light : lights) {
                     glm::vec3 lightDir = glm::normalize(light.position - intersectedPoints[closest]); 
                     glm::vec3 normalVector = glm::normalize(intersectedPoints[closest] - intersected[closest].getPosition());
-                    diffuseLight += ambientLight + light.intensity * std::max(0.f, glm::dot(normalVector, lightDir));
+
+                    //diffuse reflection
+                    diffuseLight += std::max(0.f, glm::dot(normalVector, lightDir));
+                    diffuseLight *= light.intensity;
+
+                    // specular reflection
+                    glm::vec3 lightBounceDir = 2 * glm::dot(lightDir, normalVector)* normalVector - lightDir;
+                    float specularity = intersected[closest].getSpecularity();
+                    specularLight += specularity * std::max(0.f, glm::dot(-direction, lightBounceDir));
+                    specularLight *= light.intensity;
+                    
                 }
-                color = diffuseLight * color; 
+                color = ambientLight*glm::vec3{1.f} + diffuseLight * color + specularLight * color; // the last color component should probably be a {1, 1, 1} vector, but this gives nice results
             }
 
             std::vector<float> colorWritable{};
