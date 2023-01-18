@@ -163,9 +163,10 @@ int main() {
     light.intensity = 1.f;
     lights.push_back(light);
 
-    //rayTracer::PointLight light2{};
-    //light2.position = {-1.f, 0.f, 0.f};
-    //light2.intensity = 1.0f;
+    rayTracer::PointLight light2{};
+    light2.position = {-5.f, 0.f, 0.f};
+    light2.intensity = .2f;
+    //lights.push_back(light2);
 
     float ambientLight = .2f;
 
@@ -195,17 +196,18 @@ int main() {
                 float diffuseLight = 0;
                 float specularLight = 0;
                 for (rayTracer::PointLight light : lights) {
+                    // If blocked by another sphere: skip, this is shadow
+                    
                     glm::vec3 lightDir = glm::normalize(light.position - intersectedPoints[closest]); 
                     glm::vec3 normalVector = glm::normalize(intersectedPoints[closest] - intersected[closest].getPosition());
 
                     //diffuse reflection
-                    diffuseLight += std::max(0.f, glm::dot(normalVector, lightDir));
-                    diffuseLight *= light.intensity;
+                    diffuseLight += light.intensity * std::max(0.f, glm::dot(normalVector, lightDir));
 
                     // specular reflection
                     glm::vec3 lightBounceDir = 2 * glm::dot(lightDir, normalVector)* normalVector - lightDir;
                     float specularity = intersected[closest].getSpecularity();
-                    specularLight += specularity * std::max(0.f, glm::dot(-direction, lightBounceDir));
+                    specularLight += light.intensity * specularity * std::max(0.f, glm::dot(-direction, lightBounceDir));
                     specularLight *= light.intensity;
                     
                 }
