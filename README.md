@@ -8,3 +8,4 @@ Results:
 
 ![first (working)result](https://github.com/mitrb/my-cgfs/blob/main/results/first.png?raw=true)
 ![point light](https://github.com/mitrb/my-cgfs/blob/main/results/pointLight.png?raw=true)
+![phong](https://github.com/mitrb/my-cgfs/blob/main/results/phong.png?raw=true)
