@@ -176,7 +176,7 @@ int main() {
     light2.intensity = .2f;
     //lights.push_back(light2);
 
-    float ambientLight = .2f;
+    float ambientLight = .1f;
 
     int width = resolution[0];
     int height = resolution[1];
@@ -188,7 +188,7 @@ int main() {
         for (size_t i = 0; i<width; i++) {
 
             // background color
-            glm::vec3 color = {1.f, 1.f, 1.f};
+            glm::vec3 color = {0.2f, 0.4f, 0.4f};
             std::vector<glm::vec3> intersectedPoints{};
             int closest = 0;
 
@@ -224,7 +224,8 @@ int main() {
                     specularLight *= light.intensity;
                     
                 }
-                color = ambientLight*color + diffuseLight * color + specularLight * color; // can play around with this
+                //color = ambientLight*color + diffuseLight * color + specularLight * color; // can play around with this
+                color = ambientLight + diffuseLight * color + specularLight * color; // can play around with this
             }
 
             std::vector<float> colorWritable{};
