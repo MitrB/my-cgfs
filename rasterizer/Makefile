@@ -1,4 +1,4 @@
-CFLAGS = -std=c++17 -O2
+CFLAGS = -std=c++17 -O3
 
 RasterizerTest: *.cpp
 	g++ $(CFLAGS) -o rasteRize *.cpp
