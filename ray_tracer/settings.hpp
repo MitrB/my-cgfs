@@ -53,7 +53,7 @@ struct Settings {
     glm::vec3 cameraPosition{0.f, 0.f, -1.f};
 
     bool randomSpheres{true};
-    int randomSphereAmount{10};
+    int randomSphereAmount{100};
     RandomSphereSettings sphereSettings{};
     glm::vec3 clusterOffset{0.f, 0.f, 10.f};
 
