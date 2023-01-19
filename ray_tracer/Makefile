@@ -1,4 +1,4 @@
-CFLAGS = -std=c++17 -O2
+CFLAGS = -std=c++17 -O3
 
 VulkanTest: main.cpp
 	g++ $(CFLAGS) -o rayTest main.cpp
@@ -6,7 +6,7 @@ VulkanTest: main.cpp
 .PHONY: test clean
 
 test: rayTest
-	./rayTest
+	./rayTest | feh out.ppm
 
 clean:
 	rm -f rayTest
