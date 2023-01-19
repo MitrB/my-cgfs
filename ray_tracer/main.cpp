@@ -246,7 +246,7 @@ glm::vec3 generateRandomBackground(Settings settings, std::mt19937 gen) {
     return glm::vec3{randomRed(gen), randomGreen(gen), randomBlue(gen)};
 }
 
-void loadPointLights(std::vector<rayTracer::PointLight> preDefinedLights, std::vector<rayTracer::PointLight>& lights) {
+void loadPointLights(std::vector<rayTracer::PointLight> preDefinedLights, std::vector<rayTracer::PointLight> &lights) {
     for (rayTracer::PointLight light : preDefinedLights) {
         lights.push_back(light);
     }
@@ -271,7 +271,7 @@ int main() {
     settings.randomBackground = true;
 
     // settings.preDefinedSpheres = {sphere, sphere2, sphere3};
-    settings.preDefinedLights  = {pointLight};
+    settings.preDefinedLights = {pointLight};
 
     // Init random device
     std::random_device rd;
@@ -284,7 +284,7 @@ int main() {
 
     std::vector<rayTracer::Sphere> spheres{};
     std::vector<rayTracer::PointLight> lights{};
-    glm::vec3 backColor = settings.backGroundColor;
+    glm::vec3 backColor    = settings.backGroundColor;
     glm::vec3 ambientLight = settings.ambientLight;
 
     if (settings.randomSpheres) {
@@ -311,8 +311,8 @@ int main() {
 
     // debug info
     if (settings.debug) {
-        std::cout << "Spheres #: "<< spheres.size() << '\n';
-        std::cout << "Lights #: "<< lights.size() << '\n';
+        std::cout << "Spheres #: " << spheres.size() << '\n';
+        std::cout << "Lights #: " << lights.size() << '\n';
     }
 
     // Iterate over every pixel
