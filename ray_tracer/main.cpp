@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <glm/geometric.hpp>
 #include <iostream>
 #include <limits>
 #include <vector>
@@ -100,7 +101,39 @@ void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer
             std::vector<Sphere> intersected = intersectedSpheres(scene->camera->getPosition(), direction, scene->spheres, intersectedPoints, closest);
 
             if (intersected.size() > 0) {
-                color = calculateColor(scene, intersectedPoints[closest], direction, intersected[closest]);
+                // This should get refactored
+
+                // Keep the point on the sphere we are calculating the color of
+                glm::vec3 point = intersectedPoints[closest];
+                Sphere sphere = intersected[closest];
+                // The total fraction of all combined colors is 1
+                float fraction = 1.f;
+                for (int i = 0; i < scene->reflectionCount; i ++) {
+                    color = calculateColor(scene, point, direction, sphere)*(1-sphere.getMaterial().reflectionFraction)*fraction;
+                    // the remaining fraction of color:
+                    fraction = fraction*sphere.getMaterial().reflectionFraction;
+
+                    // If there is no more reflection, break loop
+                    if (fraction <= 0) {
+                        break;
+                    }
+
+                    // caclulate new point, direction and sphere
+                    std::vector<glm::vec3> points{};
+                    glm::vec3 normalVector = glm::normalize(point - sphere.getPosition());
+                    direction = 2*glm::dot(-glm::normalize(direction), normalVector)*normalVector + glm::normalize(direction);
+                    std::vector<Sphere> spheres = intersectedSpheres(point, direction, scene->spheres, points, closest);
+
+                    // If there is no collision, return background color
+                    if (spheres.empty()) {
+                        color = scene->backColor*fraction*(sphere.getMaterial().reflectionFraction);
+                        break;
+                    }
+
+                    // set point and sphere
+                    point = points[closest];
+                    sphere = spheres[closest];
+                }
             } else {
                 color = scene->backColor;
             }

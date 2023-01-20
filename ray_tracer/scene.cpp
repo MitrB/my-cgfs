@@ -88,6 +88,7 @@ Scene::Scene(Settings settings) {
 
     backColor    = settings.backGroundColor;
     ambientLight = settings.ambientLight;
+    reflectionCount = settings.reflectionCount;
 
     if (settings.randomSpheres) {
         spheres = generateSpheres(settings, gen);   // this replaces the original spheres

@@ -66,5 +66,7 @@ struct Settings {
     std::vector<SphereDefinition> preDefinedSpheres{};
     std::vector<LightDefinition> preDefinedLights{};
 
+    int reflectionCount = 3;
+
     bool debug = true;
 };

@@ -76,6 +76,8 @@ class Scene {
     glm::vec3 ambientLight{.0f};
     std::vector<Sphere> spheres{};
     std::vector<PointLight> lights{};
+
+    int reflectionCount;
 };
 
 }   // namespace scenario
