@@ -6,11 +6,12 @@
 
 #include <glm/glm.hpp>
 
+#include "color.hpp"
+#include "drawing.hpp"
 #include "model.hpp"
 #include "tgaimage.hpp"
 
-const TGAColor white = TGAColor(255, 255, 255, 255);
-const TGAColor red = TGAColor(255, 0, 0, 255);
+
 
 /* Coordinate system:
  * The middle of the screen should be (0, 0)
@@ -36,8 +37,7 @@ class ViewPort {
      * |         |
      * LDP-------+
      */
-    glm::vec3 LEFT_DOWN_POS{-.5f, .5f,
-                            1.f};   // remember the Y axis grows downwards
+    glm::vec3 LEFT_DOWN_POS{-.5f, .5f, 1.f};   // remember the Y axis grows downwards
     glm::vec3 RIGHT_UP_POS{.5f, -.5f, 1.f};
 };
 
@@ -56,78 +56,31 @@ class Camera {
 
 }   // namespace rasterizer
 
-void
-drawLine(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
-
-    bool transposed = false;
-    if (std::abs(y1 - y0) > std::abs(x1 - x0)) {
-        std::swap(x0, y0);
-        std::swap(x1, y1);
-        transposed = true;
-    }
-
-    // always draw left to right
-    if (x1 < x0) {
-        std::swap(x0, x1);
-        std::swap(y0, y1);
-    }
-
-    int dx = x1 - x0;
-    int dy = y1 - y0;
-    int yi = 1;
-    if (dy < 0) {
-        yi = -1;
-        dy = -dy;
-    }
-    int error = (2 * dy) - dx;
-    int y = y0;
-    if (transposed) {
-        for (int x = x0; x < x1; x++) {
-            image.set(y, x, color);
-            if (error > 0) {
-                y += yi;
-                error += (2 * (dy - dx));
-            } else {
-                error += 2 * dy;
-            }
-        }
-
-    } else {
-        for (int x = x0; x < x1; x++) {
-            image.set(x, y, color);
-            if (error > 0) {
-                y += yi;
-                error += (2 * (dy - dx));
-            } else {
-                error += 2 * dy;
-            }
-        }
-    }
-}
-
-int
-main(int argc, char **argv) {
+int main(int argc, char **argv) {
     // Init
 
-    int width = 1080;
+    int width  = 1080;
     int height = 1080;
 
     TGAImage image(width, height, TGAImage::RGB);
     Model model("obj/model.obj");
 
-    for (int i = 0; i < model.nfaces(); i++) {
-        std::vector<int> face = model.face(i);
-        for (int j = 0; j < 3; j++) {
-            glm::vec3 v0 = model.vert(face[j]);
-            glm::vec3 v1 = model.vert(face[(j + 1) % 3]);
-            int x0 = (v0.x + 1.) * width / 2.;
-            // std::cout << v0[0] << '\n';
-            int y0 = (v0.y + 1.) * height / 2.;
-            int x1 = (v1.x + 1.) * width / 2.;
-            int y1 = (v1.y + 1.) * height / 2.;
-            drawLine(x0, y0, x1, y1, image, white);
-        }
-    }
+    // drawing::drawModel(model, image);
+
+    // objects::Triangle triangle0 = {{300, 60}, {800, 120}, {600, 930}, red};
+    // objects::Triangle triangle1 = {{60, 260}, {100, 250}, {120, 237}, green};
+    // objects::Triangle triangle2 = {{600, 60}, {200, 858}, {300, 139}, blue};
+    // objects::Triangle triangle3 = {{60, 60}, {200, 858}, {300, 139}, white};
+    // drawing::drawTriangle(triangle0, image);
+    // drawing::drawTriangle(triangle1, image);
+    // drawing::drawTriangle(triangle2, image);
+    // drawing::drawTriangle(triangle3, image);
+
+    float zbuffer[height*width];
+    for (int i=width*height; i--; zbuffer[i] = -std::numeric_limits<float>::max());
+
+    drawing::drawModel(model, image, zbuffer);
+
 
     image.flip_vertically();
     image.write_tga_file("out.tga");

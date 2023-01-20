@@ -16,9 +16,8 @@ Model::Model(const char *filename) : verts_(), faces_() {
         char trash;
         if (!line.compare(0, 2, "v ")) {
             iss >> trash;
-            std::vector<float> temp_v = {0, 0, 0};
-            for (int i=1;i<3;i++) iss >> temp_v[i]; 
-            glm::vec3 v {temp_v[1], temp_v[2], temp_v[0]}; 
+            glm::vec3 v {0.f}; 
+            for (int i=0;i<3;i++) iss >> v[i]; 
             verts_.push_back(v);
         } else if (!line.compare(0, 2, "f ")) {
             std::vector<int> f;

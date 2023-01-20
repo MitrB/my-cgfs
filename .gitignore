@@ -37,3 +37,4 @@ rayTest
 .clang-format
 
 *.backup
+*.tga

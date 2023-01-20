@@ -10,7 +10,7 @@ namespace material {
  * Never use this before loadMaterials
  * @param material
  */
-void addMaterial(Material material) { materials[material.name] = material; }
+void addMaterial(Material material) { materials.emplace(material.name, material); }
 
 Material getMaterialProperties(std::string name) {
     Material material = materials[name];
