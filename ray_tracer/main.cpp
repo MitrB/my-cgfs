@@ -1,4 +1,5 @@
 #include "material.hpp"
+#include "object.hpp"
 #include "scene.hpp"
 
 #include <cmath>
@@ -49,6 +50,33 @@ std::vector<Sphere> intersectedSpheres(glm::vec3 origin, glm::vec3 direction, st
     return intersectedSpheres;
 }
 
+glm::vec3 calculateColor(scenario::Scene *scene, glm::vec3 point, glm::vec3 direction, Sphere sphere) {
+    // calculate light
+    glm::vec3 ambientLight  = scene->ambientLight * sphere.getMaterial().ambientConstant;
+    glm::vec3 diffuseLight  = glm::vec3{.0f};
+    glm::vec3 specularLight = glm::vec3{0.f};
+    for (scenario::PointLight light : scene->lights) {
+        // If blocked by another sphere: skip, this is shadow
+        int _c = 0;
+        std::vector<glm::vec3> _intersectedPoints{};
+        if (intersectedSpheres(point, light.position - point, scene->spheres, _intersectedPoints, _c).size() > 0) {
+            continue;
+        }
+
+        glm::vec3 lightDir     = glm::normalize(light.position - point);
+        glm::vec3 normalVector = glm::normalize(point - sphere.getPosition());
+
+        // Diffuse reflection
+        diffuseLight += sphere.getMaterial().diffuseConstant * light.diffusionIntensity * std::max(0.f, glm::dot(normalVector, lightDir));
+
+        // Specular reflection
+        glm::vec3 lightBounceDir = 2 * glm::dot(lightDir, normalVector) * normalVector - lightDir;
+        specularLight +=
+            sphere.getMaterial().specularConstant * light.specularIntensity * powf(std::max(0.f, glm::dot(-(direction + scene->camera->getPosition()), lightBounceDir)), sphere.getMaterial().shineFactor);
+    }
+    return ambientLight + diffuseLight + specularLight;
+}
+
 void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer) {
     // Precalc
     std::vector<int> resolution = scene->canvas->getResolution();
@@ -62,7 +90,7 @@ void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer
     // Iterate over every pixel
     for (size_t j = 0; j < height; j++) {
         for (size_t i = 0; i < width; i++) {
-            glm::vec3 color = scene->backColor;
+            glm::vec3 color {0.f};
 
             std::vector<glm::vec3> intersectedPoints{};
             int closest = 0;
@@ -72,30 +100,9 @@ void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer
             std::vector<Sphere> intersected = intersectedSpheres(scene->camera->getPosition(), direction, scene->spheres, intersectedPoints, closest);
 
             if (intersected.size() > 0) {
-
-                // calculate light
-                glm::vec3 ambientLight  = scene->ambientLight * intersected[closest].getAmbientConstant();
-                glm::vec3 diffuseLight  = glm::vec3{.0f};
-                glm::vec3 specularLight = glm::vec3{0.f};
-                for (scenario::PointLight light : scene->lights) {
-                    // If blocked by another sphere: skip, this is shadow
-                    int _c = 0;
-                    if (intersectedSpheres(intersectedPoints[closest], light.position - intersectedPoints[closest], scene->spheres, intersectedPoints, _c).size() > 0) {
-                        continue;
-                    }
-
-                    glm::vec3 lightDir     = glm::normalize(light.position - intersectedPoints[closest]);
-                    glm::vec3 normalVector = glm::normalize(intersectedPoints[closest] - intersected[closest].getPosition());
-
-                    // Diffuse reflection
-                    diffuseLight += intersected[closest].getDiffuseConstant() * light.diffusionIntensity * std::max(0.f, glm::dot(normalVector, lightDir));
-
-                    // Specular reflection
-                    glm::vec3 lightBounceDir = 2 * glm::dot(lightDir, normalVector) * normalVector - lightDir;
-                    specularLight += intersected[closest].getSpecularityConstant() * light.specularIntensity *
-                                     powf(std::max(0.f, glm::dot(-(direction + scene->camera->getPosition()), lightBounceDir)), intersected[closest].getShineFactor());
-                }
-                color = ambientLight + diffuseLight + specularLight;
+                color = calculateColor(scene, intersectedPoints[closest], direction, intersected[closest]);
+            } else {
+                color = scene->backColor;
             }
 
             std::vector<float> colorWritable{};
@@ -121,7 +128,7 @@ void render(int width, int height, std::vector<std::vector<float>> &framebuffer)
     ofs.close();
 }
 
-void configureSettings(Settings& settings) {
+void configureSettings(Settings &settings) {
     // Hardcoded predefined spheres and lights
     // SphereDefinition sphere{{-1.0f, -0.5f, 5.0f}, 1.f, MaterialBuilder::getMaterialProperties("mat1")};
     // SphereDefinition sphere2{{0.0f, 0.0f, 5.0f}, 1.f, MaterialBuilder::getMaterialProperties("mat2")};
@@ -147,16 +154,16 @@ int main() {
 
     // debug info
     if (settings.debug) {
-        std::cout << "Scene succesfully build."<< '\n';
-        std::cout << "Rendering: "<< '\n';
+        std::cout << "Scene succesfully build." << '\n';
+        std::cout << "Rendering: " << '\n';
         std::cout << '\t' << "Spheres #: " << scene->spheres.size() << '\n';
         std::cout << '\t' << "Lights #: " << scene->lights.size() << '\n';
     }
 
     renderScene(scene, framebuffer);
     if (settings.debug) {
-        std::cout << "Scene succesfully rendered."<< '\n';
-        std::cout << "Writing "<< framebuffer.size() << " pixels." << '\n';
+        std::cout << "Scene succesfully rendered." << '\n';
+        std::cout << "Writing " << framebuffer.size() << " pixels." << '\n';
     }
     render(scene->canvas->getResolution()[0], scene->canvas->getResolution()[1], framebuffer);
 

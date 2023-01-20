@@ -12,6 +12,7 @@ struct Material {
     glm::vec3 diffuseConstant;
     glm::vec3 ambientConstant;
     float shineFactor;
+    float reflectionFraction; // 1.f will be a perfect mirror
 };
 
 class MaterialBuilder {
