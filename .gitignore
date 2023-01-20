@@ -35,3 +35,5 @@ ray_tracer/*.ppm
 ray_tracer/*.png
 rayTest
 .clang-format
+
+*.backup

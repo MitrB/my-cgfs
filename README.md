@@ -1,12 +1,15 @@
 # my-cgfs
-My implementation following the book:
-[Computer Graphics from Scratch](https://www.gabrielgambetta.com/computer-graphics-from-scratch/)
 
-And also taking inspiration from this repository: [tinytracer](https://github.com/ssloy/tinyraytracer/wiki)
+An Etude for me to get more comfortable with c++ and graphics programming.
 
-Results:
+---
 
-![first (working)result](https://github.com/mitrb/my-cgfs/blob/main/results/first.png?raw=true)
-![point light](https://github.com/mitrb/my-cgfs/blob/main/results/pointLight.png?raw=true)
-![phong](https://github.com/mitrb/my-cgfs/blob/main/results/phong.png?raw=true)
+This project started with me following the book: [Computer Graphics from Scratch](https://www.gabrielgambetta.com/computer-graphics-from-scratch/). But in the end I was more inspired by 
+[tinytracer](https://github.com/ssloy/tinyraytracer/wiki). Which itself links to some great mathematical resources.
+
+## Results:
+
+### RayTracer
+
 ![shadows](https://github.com/mitrb/my-cgfs/blob/main/results/shadows.png?raw=true)
+![reflection](https://github.com/mitrb/my-cgfs/blob/main/results/orange_purple.png?raw=true)

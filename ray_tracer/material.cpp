@@ -18,12 +18,13 @@ Material MaterialBuilder::getMaterialProperties(std::string name) {
 }
 
 void MaterialBuilder::loadMaterials() {
-    // MaterialBuilder::addMaterial({"mat1", {1.f, 1.f, 1.f}, {0.5f, 0.6f, 0.3f}, glm::vec3{0.5f}, 0.9f, 0.f});
-    // MaterialBuilder::addMaterial({"mat2", {.5f, .6f, .5f}, {0.9f, 0.6f, 0.3f}, glm::vec3{0.9f, 0.0f, 0.0f}, 50.f, 0.f});
-    // MaterialBuilder::addMaterial({"mat3", {.1f, .1f, .1f}, {0.2f, 0.2f, 0.3f}, glm::vec3{0.5f, 0.5f, 0.9f}, .9f, 0.f});
-    // MaterialBuilder::addMaterial({"mat4", {.2f, .5f, .2f}, {0.1f, 0.1f, 0.3f}, glm::vec3{0.1f, 0.0f, 0.1f}, 50.0f, 0.f});
+    MaterialBuilder::addMaterial({"mat1", {1.f, 1.f, 1.f}, {0.5f, 0.6f, 0.3f}, glm::vec3{0.5f}, 0.9f, 0.f});
+    MaterialBuilder::addMaterial({"mat2", {.5f, .6f, .5f}, {0.9f, 0.6f, 0.3f}, glm::vec3{0.9f, 0.0f, 0.0f}, 50.f, 0.f});
+    MaterialBuilder::addMaterial({"mat3", {.1f, .1f, .1f}, {0.2f, 0.2f, 0.3f}, glm::vec3{0.5f, 0.5f, 0.9f}, .9f, 0.f});
+    MaterialBuilder::addMaterial({"mat4", {.2f, .5f, .2f}, {0.1f, 0.1f, 0.3f}, glm::vec3{0.1f, 0.0f, 0.1f}, 50.0f, 0.f});
     MaterialBuilder::addMaterial({"random_color", {1.f, 1.f, 1.f}, {0.5f, 0.6f, 0.3f}, glm::vec3{-0.5f}, 2.f, 0.0f});
     MaterialBuilder::addMaterial({"mirror", {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}, glm::vec3{1.f}, 0.9f, .9f});
+    MaterialBuilder::addMaterial({"random_color", {1.f, 1.f, 1.f}, {0.9f, 0.9f, 0.9f}, glm::vec3{-0.5f}, 20.f, 0.1f});
 }
 
 std::vector<std::string> MaterialBuilder::getMaterialNames() {
