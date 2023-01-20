@@ -64,12 +64,12 @@ struct PointLight {
 
 class Scene {
   public:
-    Scene(Settings settings);
+    Scene(const Settings& settings);
     ~Scene();
 
-    Camera *camera;
+    Camera camera;
     ViewPort viewPort;
-    Canvas *canvas;
+    Canvas canvas;
 
     // World scene
     glm::vec3 backColor;

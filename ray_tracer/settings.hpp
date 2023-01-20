@@ -8,7 +8,7 @@
 struct SphereDefinition {
     glm::vec3 position;
     float radius;
-    Material material;
+    material::Material material;
 };
 
 struct LightDefinition {

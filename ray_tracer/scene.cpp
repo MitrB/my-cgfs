@@ -2,11 +2,10 @@
 #include "material.hpp"
 
 #include <cassert>
-#include <random>
 #include <iostream>
+#include <random>
 
-
-std::vector<Sphere> generateSpheres(Settings settings, std::mt19937 gen) {
+std::vector<Sphere> generateSpheres(const Settings& settings, std::mt19937 gen) {
     int N = settings.randomSphereAmount;
     if (N <= 0) {
         return {};
@@ -32,10 +31,10 @@ std::vector<Sphere> generateSpheres(Settings settings, std::mt19937 gen) {
         float radius = randomRadius(gen);
 
         // Material Settings
-        std::vector<std::string> materialNames = MaterialBuilder::getMaterialNames();
+        std::vector<std::string> materialNames = material::getMaterialNames();
         assert(materialNames.size() > 0 && "0 materials loaded, aborting");
         std::uniform_int_distribution<int> randint(0, materialNames.size() - 1);
-        Material material = MaterialBuilder::getMaterialProperties(materialNames[randint(gen)]);
+        material::Material material = material::getMaterialProperties(materialNames[randint(gen)]);
         // random color if unvalid diffuse constant
         if (material.ambientConstant[0] < 0) {
             material.ambientConstant = glm::vec3{randomRed(gen), randomGreen(gen), randomBlue(gen)};
@@ -48,7 +47,7 @@ std::vector<Sphere> generateSpheres(Settings settings, std::mt19937 gen) {
     return spheres;
 }
 
-glm::vec3 generateRandomBackground(Settings settings, std::mt19937 gen) {
+glm::vec3 generateRandomBackground(const Settings& settings, std::mt19937& gen) {
     std::uniform_real_distribution<float> randomRed(settings.backgroundSettings.redMin, settings.backgroundSettings.redMax);
     std::uniform_real_distribution<float> randomGreen(settings.backgroundSettings.greenMin, settings.backgroundSettings.greenMax);
     std::uniform_real_distribution<float> randomBlue(settings.backgroundSettings.blueMin, settings.backgroundSettings.blueMax);
@@ -56,14 +55,14 @@ glm::vec3 generateRandomBackground(Settings settings, std::mt19937 gen) {
     return glm::vec3{randomRed(gen), randomGreen(gen), randomBlue(gen)};
 }
 
-void loadPointLights(std::vector<LightDefinition> preDefinedLights, std::vector<scenario::PointLight> &lights) {
+void loadPointLights(const std::vector<LightDefinition>& preDefinedLights, std::vector<scenario::PointLight> &lights) {
     for (LightDefinition light : preDefinedLights) {
-        scenario::PointLight pointLight {light.position, light.diffusionIntensity, light.specularIntensity};
+        scenario::PointLight pointLight{light.position, light.diffusionIntensity, light.specularIntensity};
         lights.push_back(pointLight);
     }
 }
 
-void loadSpheres(std::vector<SphereDefinition> preDefinedSpheres, std::vector<Sphere> &spheres) {
+void loadSpheres(const std::vector<SphereDefinition>& preDefinedSpheres, std::vector<Sphere>& spheres) {
     for (SphereDefinition definition : preDefinedSpheres) {
         Sphere sphere{definition.position, definition.radius, definition.material};
         spheres.push_back(sphere);
@@ -76,18 +75,16 @@ Canvas::Canvas(std::vector<int> resolution) { this->RESOLUTION = resolution; }
 
 Camera::Camera(glm::vec3 position) { this->position = position; }
 
-Scene::Scene(Settings settings) {
+Scene::Scene(const Settings& settings) : camera(settings.cameraPosition), canvas(settings.resolution) {
     // Init random device
     std::random_device rd;
     std::mt19937 gen(rd());
 
     // Init scene
-    camera = new Camera(settings.cameraPosition);
     ViewPort viewPort{};
-    canvas = new Canvas(settings.resolution);
 
-    backColor    = settings.backGroundColor;
-    ambientLight = settings.ambientLight;
+    backColor       = settings.backGroundColor;
+    ambientLight    = settings.ambientLight;
     reflectionCount = settings.reflectionCount;
 
     if (settings.randomSpheres) {
@@ -101,9 +98,6 @@ Scene::Scene(Settings settings) {
     loadPointLights(settings.preDefinedLights, lights);
 }
 
-Scene::~Scene() {
-    delete camera;
-    delete canvas;
-}
+Scene::~Scene() {}
 
-}   
+}   // namespace scenario

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
+namespace material {
 struct Material {
     std::string name;
     glm::vec3 specularConstant;
@@ -15,15 +16,12 @@ struct Material {
     float reflectionFraction; // 1.f will be a perfect mirror
 };
 
-class MaterialBuilder {
-  public:
-    MaterialBuilder();
-    static void loadMaterials();
+    void loadMaterials();
 
-    static void addMaterial(Material material);
-    static Material getMaterialProperties(std::string name);
+    void addMaterial(Material material);
+    Material getMaterialProperties(std::string name);
 
-    static std::vector<std::string> getMaterialNames();
+    std::vector<std::string> getMaterialNames();
 
-    static std::unordered_map<std::string, Material> materials;
+    static std::unordered_map<std::string, Material> materials{};
 };

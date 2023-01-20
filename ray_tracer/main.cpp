@@ -20,7 +20,7 @@ std::vector<Sphere> intersectedSpheres(glm::vec3 origin, glm::vec3 direction, st
     // Calculate everything with the origin as 0 0 0
 
     float closestLength = std::numeric_limits<float>::infinity();
-    int iterIndex       = 0;
+    int iterIndex       = 0; // position of the closest point in intersectedPoints
     for (Sphere sphere : spheres) {
         glm::vec3 point = sphere.getPosition() - origin;
         // check if the sphere is behind the direction: discard
@@ -73,20 +73,20 @@ glm::vec3 calculateColor(scenario::Scene *scene, glm::vec3 point, glm::vec3 dire
         // Specular reflection
         glm::vec3 lightBounceDir = 2 * glm::dot(lightDir, normalVector) * normalVector - lightDir;
         specularLight +=
-            sphere.getMaterial().specularConstant * light.specularIntensity * powf(std::max(0.f, glm::dot(-(direction + scene->camera->getPosition()), lightBounceDir)), sphere.getMaterial().shineFactor);
+            sphere.getMaterial().specularConstant * light.specularIntensity * powf(std::max(0.f, glm::dot(-(direction + scene->camera.getPosition()), lightBounceDir)), sphere.getMaterial().shineFactor);
     }
     return ambientLight + diffuseLight + specularLight;
 }
 
 void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer) {
     // Precalc
-    std::vector<int> resolution = scene->canvas->getResolution();
-    int width                   = resolution[0];
-    int height                  = resolution[1];
-    float viewPortWidth         = scene->viewPort.getRUP()[0] - scene->viewPort.getLDP()[0];
-    float viewPortHeight        = -scene->viewPort.getRUP()[1] + scene->viewPort.getLDP()[1];
-    float pixelWidth            = viewPortWidth / resolution[0];
-    float pixelHeight           = viewPortHeight / resolution[1];
+    const std::vector<int> resolution = scene->canvas.getResolution();
+    const int width                   = resolution[0];
+    const int height                  = resolution[1];
+    const float viewPortWidth         = scene->viewPort.getRUP()[0] - scene->viewPort.getLDP()[0];
+    const float viewPortHeight        = -scene->viewPort.getRUP()[1] + scene->viewPort.getLDP()[1];
+    const float pixelWidth            = viewPortWidth / resolution[0];
+    const float pixelHeight           = viewPortHeight / resolution[1];
 
     // Iterate over every pixel
     for (size_t j = 0; j < height; j++) {
@@ -98,7 +98,7 @@ void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer
 
             glm::vec3 direction =
                 glm::vec3{pixelWidth * i - viewPortWidth / 2 + pixelWidth / 2, pixelHeight * j - viewPortHeight / 2 + pixelHeight / 2, scene->viewPort.getZ()};   // this is relative to the camera
-            std::vector<Sphere> intersected = intersectedSpheres(scene->camera->getPosition(), direction, scene->spheres, intersectedPoints, closest);
+            std::vector<Sphere> intersected = intersectedSpheres(scene->camera.getPosition(), direction, scene->spheres, intersectedPoints, closest);
 
             if (intersected.size() > 0) {
                 // This should get refactored
@@ -176,7 +176,7 @@ void configureSettings(Settings &settings) {
 int main() {
     // Load settings
     Settings settings{};
-    MaterialBuilder::loadMaterials();
+    material::loadMaterials();
 
     configureSettings(settings);
 
@@ -198,7 +198,7 @@ int main() {
         std::cout << "Scene succesfully rendered." << '\n';
         std::cout << "Writing " << framebuffer.size() << " pixels." << '\n';
     }
-    render(scene->canvas->getResolution()[0], scene->canvas->getResolution()[1], framebuffer);
+    render(scene->canvas.getResolution()[0], scene->canvas.getResolution()[1], framebuffer);
 
     return 0;
 }
