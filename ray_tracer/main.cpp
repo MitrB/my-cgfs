@@ -51,16 +51,16 @@ std::vector<Sphere> intersectedSpheres(glm::vec3 origin, glm::vec3 direction, st
     return intersectedSpheres;
 }
 
-glm::vec3 calculateColor(scenario::Scene *scene, glm::vec3 point, glm::vec3 direction, Sphere sphere) {
+glm::vec3 calculateColor(const scenario::Scene& scene, glm::vec3 point, glm::vec3 direction, Sphere sphere) {
     // calculate light
-    glm::vec3 ambientLight  = scene->ambientLight * sphere.getMaterial().ambientConstant;
+    glm::vec3 ambientLight  = scene.ambientLight * sphere.getMaterial().ambientConstant;
     glm::vec3 diffuseLight  = glm::vec3{.0f};
     glm::vec3 specularLight = glm::vec3{0.f};
-    for (scenario::PointLight light : scene->lights) {
+    for (scenario::PointLight light : scene.lights) {
         // If blocked by another sphere: skip, this is shadow
         int _c = 0;
         std::vector<glm::vec3> _intersectedPoints{};
-        if (intersectedSpheres(point, light.position - point, scene->spheres, _intersectedPoints, _c).size() > 0) {
+        if (intersectedSpheres(point, light.position - point, scene.spheres, _intersectedPoints, _c).size() > 0) {
             continue;
         }
 
@@ -73,18 +73,18 @@ glm::vec3 calculateColor(scenario::Scene *scene, glm::vec3 point, glm::vec3 dire
         // Specular reflection
         glm::vec3 lightBounceDir = 2 * glm::dot(lightDir, normalVector) * normalVector - lightDir;
         specularLight +=
-            sphere.getMaterial().specularConstant * light.specularIntensity * powf(std::max(0.f, glm::dot(-(direction + scene->camera.getPosition()), lightBounceDir)), sphere.getMaterial().shineFactor);
+            sphere.getMaterial().specularConstant * light.specularIntensity * powf(std::max(0.f, glm::dot(-(direction + scene.camera.getPosition()), lightBounceDir)), sphere.getMaterial().shineFactor);
     }
     return ambientLight + diffuseLight + specularLight;
 }
 
-void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer) {
+void renderScene(const scenario::Scene& scene, std::vector<std::vector<float>> &buffer) {
     // Precalc
-    const std::vector<int> resolution = scene->canvas.getResolution();
+    const std::vector<int> resolution = scene.canvas.getResolution();
     const int width                   = resolution[0];
     const int height                  = resolution[1];
-    const float viewPortWidth         = scene->viewPort.getRUP()[0] - scene->viewPort.getLDP()[0];
-    const float viewPortHeight        = -scene->viewPort.getRUP()[1] + scene->viewPort.getLDP()[1];
+    const float viewPortWidth         = scene.viewPort.getRUP()[0] - scene.viewPort.getLDP()[0];
+    const float viewPortHeight        = -scene.viewPort.getRUP()[1] + scene.viewPort.getLDP()[1];
     const float pixelWidth            = viewPortWidth / resolution[0];
     const float pixelHeight           = viewPortHeight / resolution[1];
 
@@ -97,8 +97,8 @@ void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer
             int closest = 0;
 
             glm::vec3 direction =
-                glm::vec3{pixelWidth * i - viewPortWidth / 2 + pixelWidth / 2, pixelHeight * j - viewPortHeight / 2 + pixelHeight / 2, scene->viewPort.getZ()};   // this is relative to the camera
-            std::vector<Sphere> intersected = intersectedSpheres(scene->camera.getPosition(), direction, scene->spheres, intersectedPoints, closest);
+                glm::vec3{pixelWidth * i - viewPortWidth / 2 + pixelWidth / 2, pixelHeight * j - viewPortHeight / 2 + pixelHeight / 2, scene.viewPort.getZ()};   // this is relative to the camera
+            std::vector<Sphere> intersected = intersectedSpheres(scene.camera.getPosition(), direction, scene.spheres, intersectedPoints, closest);
 
             if (intersected.size() > 0) {
                 // This should get refactored
@@ -108,7 +108,7 @@ void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer
                 Sphere sphere = intersected[closest];
                 // The total fraction of all combined colors is 1
                 float fraction = 1.f;
-                for (int i = 0; i < scene->reflectionCount; i ++) {
+                for (int i = 0; i < scene.reflectionCount; i ++) {
                     color = calculateColor(scene, point, direction, sphere)*(1-sphere.getMaterial().reflectionFraction)*fraction;
                     // the remaining fraction of color:
                     fraction = fraction*sphere.getMaterial().reflectionFraction;
@@ -122,11 +122,11 @@ void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer
                     std::vector<glm::vec3> points{};
                     glm::vec3 normalVector = glm::normalize(point - sphere.getPosition());
                     direction = 2*glm::dot(-glm::normalize(direction), normalVector)*normalVector + glm::normalize(direction);
-                    std::vector<Sphere> spheres = intersectedSpheres(point, direction, scene->spheres, points, closest);
+                    std::vector<Sphere> spheres = intersectedSpheres(point, direction, scene.spheres, points, closest);
 
                     // If there is no collision, return background color
                     if (spheres.empty()) {
-                        color = scene->backColor*fraction*(sphere.getMaterial().reflectionFraction);
+                        color = scene.backColor*fraction*(sphere.getMaterial().reflectionFraction);
                         break;
                     }
 
@@ -135,7 +135,7 @@ void renderScene(scenario::Scene *scene, std::vector<std::vector<float>> &buffer
                     sphere = spheres[closest];
                 }
             } else {
-                color = scene->backColor;
+                color = scene.backColor;
             }
 
             std::vector<float> colorWritable{};
@@ -180,7 +180,7 @@ int main() {
 
     configureSettings(settings);
 
-    scenario::Scene *scene = new scenario::Scene(settings);
+    scenario::Scene scene {settings};
 
     // buffer for writing scene to file
     std::vector<std::vector<float>> framebuffer{};
@@ -189,8 +189,8 @@ int main() {
     if (settings.debug) {
         std::cout << "Scene succesfully build." << '\n';
         std::cout << "Rendering: " << '\n';
-        std::cout << '\t' << "Spheres #: " << scene->spheres.size() << '\n';
-        std::cout << '\t' << "Lights #: " << scene->lights.size() << '\n';
+        std::cout << '\t' << "Spheres #: " << scene.spheres.size() << '\n';
+        std::cout << '\t' << "Lights #: " << scene.lights.size() << '\n';
     }
 
     renderScene(scene, framebuffer);
@@ -198,7 +198,7 @@ int main() {
         std::cout << "Scene succesfully rendered." << '\n';
         std::cout << "Writing " << framebuffer.size() << " pixels." << '\n';
     }
-    render(scene->canvas.getResolution()[0], scene->canvas.getResolution()[1], framebuffer);
+    render(scene.canvas.getResolution()[0], scene.canvas.getResolution()[1], framebuffer);
 
     return 0;
 }

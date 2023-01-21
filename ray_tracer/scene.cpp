@@ -63,9 +63,8 @@ void loadPointLights(const std::vector<LightDefinition>& preDefinedLights, std::
 }
 
 void loadSpheres(const std::vector<SphereDefinition>& preDefinedSpheres, std::vector<Sphere>& spheres) {
-    for (SphereDefinition definition : preDefinedSpheres) {
-        Sphere sphere{definition.position, definition.radius, definition.material};
-        spheres.push_back(sphere);
+    for (const SphereDefinition& definition : preDefinedSpheres) {
+        spheres.emplace_back(definition.position, definition.radius, definition.material);
     }
 }
 
@@ -97,7 +96,5 @@ Scene::Scene(const Settings& settings) : camera(settings.cameraPosition), canvas
     loadSpheres(settings.preDefinedSpheres, spheres);
     loadPointLights(settings.preDefinedLights, lights);
 }
-
-Scene::~Scene() {}
 
 }   // namespace scenario

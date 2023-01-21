@@ -18,9 +18,8 @@ namespace scenario {
 class Canvas {
   public:
     Canvas(std::vector<int> resolution);
-    ~Canvas(){};
 
-    std::vector<int> getResolution() { return RESOLUTION; }
+    std::vector<int> getResolution() const { return RESOLUTION; }
 
   private:
     std::vector<int> RESOLUTION{640, 640};   // WIDHT HEIGHT
@@ -30,11 +29,10 @@ class ViewPort {
     // The viewport is relative to the camera
   public:
     ViewPort(){};
-    ~ViewPort(){};
 
-    float getZ() { return this->LEFT_DOWN_POS[2]; }
-    glm::vec3 getLDP() { return LEFT_DOWN_POS; }
-    glm::vec3 getRUP() { return RIGHT_UP_POS; }
+    float getZ() const { return this->LEFT_DOWN_POS[2]; }
+    glm::vec3 getLDP() const { return LEFT_DOWN_POS; }
+    glm::vec3 getRUP() const { return RIGHT_UP_POS; }
 
   private:
     /* +--------RUP
@@ -48,9 +46,8 @@ class ViewPort {
 class Camera {
   public:
     Camera(glm::vec3 position);
-    ~Camera(){};
 
-    glm::vec3 getPosition() { return this->position; }
+    glm::vec3 getPosition() const { return this->position; }
 
   private:
     glm::vec3 position{0.0f, 0.0f, 0.0f};
@@ -65,7 +62,6 @@ struct PointLight {
 class Scene {
   public:
     Scene(const Settings& settings);
-    ~Scene();
 
     Camera camera;
     ViewPort viewPort;

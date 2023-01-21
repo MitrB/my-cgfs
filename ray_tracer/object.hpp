@@ -9,10 +9,10 @@ class Sphere {
     Sphere(glm::vec3 position, float radius, material::Material material);
     ~Sphere(){};
 
-    glm::vec3 getPosition() { return this->position; }
-    float getRadius() { return this->radius; }
+    glm::vec3 getPosition() const { return this->position; }
+    float getRadius() const { return this->radius; }
 
-    material::Material getMaterial() {return this->material;}
+    material::Material getMaterial() const {return this->material;}
 
   private:
     glm::vec3 position;
