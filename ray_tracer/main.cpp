@@ -109,7 +109,7 @@ void renderScene(const scenario::Scene& scene, std::vector<std::vector<float>> &
                 // The total fraction of all combined colors is 1
                 float fraction = 1.f;
                 for (int i = 0; i < scene.reflectionCount; i ++) {
-                    color = calculateColor(scene, point, direction, sphere)*(1-sphere.getMaterial().reflectionFraction)*fraction;
+                    color += calculateColor(scene, point, direction, sphere)*(1-sphere.getMaterial().reflectionFraction)*fraction;
                     // the remaining fraction of color:
                     fraction = fraction*sphere.getMaterial().reflectionFraction;
 
@@ -126,7 +126,7 @@ void renderScene(const scenario::Scene& scene, std::vector<std::vector<float>> &
 
                     // If there is no collision, return background color
                     if (spheres.empty()) {
-                        color = scene.backColor*fraction*(sphere.getMaterial().reflectionFraction);
+                        color += scene.backColor*fraction*(sphere.getMaterial().reflectionFraction);
                         break;
                     }
 
